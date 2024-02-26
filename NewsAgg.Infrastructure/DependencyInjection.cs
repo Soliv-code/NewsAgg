@@ -11,7 +11,7 @@ namespace NewsAgg.Infrastructure
         {
             services.AddDbContext<NewsAggDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("PostgreSQL"),
                 x => x.MigrationsAssembly(typeof(NewsAggDbContext).Assembly.FullName)), ServiceLifetime.Transient);
-            services.AddScoped<INewsAggDbContext>(x => x.GetService<NewsAggDbContext>());
+            services.AddScoped<INewsAggDbContext>(prov => prov.GetService<NewsAggDbContext>());
             return services;
         }
     }
