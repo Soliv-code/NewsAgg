@@ -1,0 +1,24 @@
+version: '3.4'
+
+services:
+  newsagg.webapi:
+    image: ${DOCKER_REGISTRY-}newsaggwebapi
+    container_name: newsagg.api
+    build:
+      context: .
+      dockerfile: NewsAgg.WebAPI/Dockerfile
+    ports:
+    - "5000:5000"
+    - "5001:5001"
+
+  newsagg.database:
+    image: postgres:14.3
+    container_name: newsagg.database
+    environment:
+    - POSTGRES_DB=agg
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=postgres
+    volumes:
+    - ./.containers/product-db:/var/lib/postgresql/data
+    ports:
+    - "5432:5432"

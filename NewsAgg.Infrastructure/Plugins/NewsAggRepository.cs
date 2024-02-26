@@ -21,7 +21,7 @@ namespace NewsAgg.Infrastructure.Plugins
         }
         public async Task<List<NewsFeed>> GetAllNewsAsync()
         {
-            var newsFeeds = await _newsAggDbContext.NewsFeeds.ToListAsync();
+            var newsFeeds = await _newsAggDbContext.NewsFeeds.OrderBy(n => n.Id).ToListAsync();
             return newsFeeds;
         }
         public async Task<List<NewsFeed>> FindNewsFeedByTitle(string searchLine)
