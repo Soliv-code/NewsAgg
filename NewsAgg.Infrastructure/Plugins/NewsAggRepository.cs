@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NewsAgg.Application;
 using NewsAgg.Domain;
+using NewsAgg.Domain.DTO;
 using NewsAgg.Infrastructure.Additions;
 using NewsAgg.Infrastructure.Context;
 
@@ -13,43 +14,48 @@ namespace NewsAgg.Infrastructure.Plugins
         {
             _newsAggDbContext = newsAggDbContext;
         }
-
-        public List<NewsFeed> GetAllNewsFeeds()
+        public List<NewsFeedDto> GetAllNewsFeeds()
         {
-            var newsFeeds = _newsAggDbContext.NewsFeeds.ToList();
+            return _newsAggDbContext.NewsFeeds.Select(nf => nf.toDto()).ToList();
+        }
+        public async Task<List<NewsFeedDto>> GetAllNewsAsync()
+        {
+            var newsFeeds = await _newsAggDbContext.NewsFeeds.OrderByDescending(n => n.PubDate).Select(x => x.toDto()).ToListAsync();
             return newsFeeds;
         }
-        public async Task<List<NewsFeed>> GetAllNewsAsync()
-        {
-            var newsFeeds = await _newsAggDbContext.NewsFeeds.OrderBy(n => n.Id).ToListAsync();
-            return newsFeeds;
-        }
-        public async Task<List<NewsFeed>> FindNewsFeedByTitle(string searchLine)
+        public async Task<List<NewsFeedDto>> FindNewsFeedByTitle(string searchLine)
         {
             if (searchLine is null || searchLine == string.Empty)
-                return await _newsAggDbContext.NewsFeeds.ToListAsync();
+                return await _newsAggDbContext.NewsFeeds.OrderBy(n => n.Id).Select(x => x.toDto()).ToListAsync();
             else
-                return await _newsAggDbContext.NewsFeeds.Where(n => n.Title.Contains(searchLine)).OrderByDescending(n => n.PubDate).ToListAsync();
+                return await _newsAggDbContext.NewsFeeds
+                    .Where(n => n.Title.Contains(searchLine))
+                    .OrderByDescending(n => n.PubDate)
+                    .Select(x => x.toDto()).ToListAsync();
         }
-        public async Task<List<NewsFeed>> FindNewsFeedByDescription(string searchLine)
+        public async Task<List<NewsFeedDto>> FindNewsFeedByDescription(string searchLine)
         {
             if (searchLine is null || searchLine == string.Empty)
-                return await _newsAggDbContext.NewsFeeds.ToListAsync();
+                return await _newsAggDbContext.NewsFeeds.OrderBy(n => n.Id).Select(x => x.toDto()).ToListAsync();
             else
-                return await _newsAggDbContext.NewsFeeds.Where(n => n.Description.Contains(searchLine)).OrderByDescending(n => n.PubDate).ToListAsync();
+                return await _newsAggDbContext.NewsFeeds
+                    .Where(n => n.Description
+                    .Contains(searchLine))
+                    .OrderByDescending(n => n.PubDate)
+                    .Select(x => x.toDto()).ToListAsync();
         }
 
-        public async Task<List<NewsFeed>> FindNewsFeedByTitleAndDescription(string searchLine)
+        public async Task<List<NewsFeedDto>> FindNewsFeedByTitleAndDescription(string searchLine)
         {
-            if (searchLine is null || searchLine == string.Empty)
-                return await _newsAggDbContext.NewsFeeds.ToListAsync();
+            if (string.IsNullOrWhiteSpace(searchLine))
+                return await _newsAggDbContext.NewsFeeds.OrderBy(n => n.Id).Select(x => x.toDto()).ToListAsync();
             else
                 return await _newsAggDbContext.NewsFeeds.Where(n => 
                 n.Title.Contains(searchLine) || 
-                n.Description.Contains(searchLine)).OrderByDescending(n => n.PubDate).ToListAsync();
+                n.Description.Contains(searchLine)).OrderByDescending(n => n.PubDate).Select(x => x.toDto()).ToListAsync();
         }
 
-
+/*
         public NewsFeed CreateNewsFeed(NewsFeed newsFeed)
         {
             _newsAggDbContext.NewsFeeds.Add(newsFeed);
@@ -58,11 +64,19 @@ namespace NewsAgg.Infrastructure.Plugins
             else
                 return new NewsFeed();
         }
-        public async Task<NewsFeed> CreateNewsFeedAsync(NewsFeed newsFeed)
+*/
+        public async Task<CreateNewsFeedDto?> CreateNewsFeedAsync(CreateNewsFeedDto newsFeedDto)
         {
+            NewsFeed newsFeed = new()
+            {
+                Title = newsFeedDto.Title,
+                Description = newsFeedDto.Description,
+                Link = newsFeedDto.Link,
+                PubDate = newsFeedDto.PubDate,
+            };
             _newsAggDbContext.NewsFeeds.Add(newsFeed);
             await _newsAggDbContext.SaveChangesAsync();
-            return newsFeed ?? new NewsFeed();
+            return newsFeedDto;
         }
         public async Task<int> CreateNewsFeeds(string requestLink)
         {
