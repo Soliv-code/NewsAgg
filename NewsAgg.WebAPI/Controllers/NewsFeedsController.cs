@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NewsAgg.Application;
 using NewsAgg.Domain;
+using NewsAgg.Domain.DTO;
 using System.ComponentModel.DataAnnotations;
 
 namespace NewsAgg.WebAPI.Controllers
@@ -71,12 +72,12 @@ namespace NewsAgg.WebAPI.Controllers
         //TODO: remove id from incoming NewsFeed model
         [HttpPost]
         [Route("PostNewsfeedByModel")]
-        public async Task<ActionResult<NewsFeed>> PostNewsFeedAsync([Required] NewsFeed newsFeed)
+        public async Task<ActionResult<CreateNewsFeedDto>> PostNewsFeedAsync(CreateNewsFeedDto newsFeedDto)
         {
-            if (newsFeed is null)
+            if (newsFeedDto is null)
                 return BadRequest();
 
-            NewsFeed? newModelNewsFeed = await _newsAggService.CreateNewsFeedAsync(newsFeed);
+            CreateNewsFeedDto? newModelNewsFeed = await _newsAggService.CreateNewsFeedAsync(newsFeedDto);
             return newModelNewsFeed is not null ? Ok(newModelNewsFeed) : BadRequest();
         }
         [HttpPost]
